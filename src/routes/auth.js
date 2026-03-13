@@ -33,8 +33,8 @@ router.post('/register', authLimiter, async (req, res) => {
 
     res.status(201).json({ token: makeToken(user.id), user: publicUser(user) });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Registration failed' });
+    console.error('REGISTER ERROR:', e.message, e.code);
+    res.status(500).json({ error: e.message || 'Registration failed' });
   }
 });
 
@@ -52,8 +52,8 @@ router.post('/login', authLimiter, async (req, res) => {
 
     res.json({ token: makeToken(user.id), user: publicUser(user) });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Login failed' });
+    console.error("AUTH ERROR:", e.message, e.code);
+    res.status(500).json({ error: e.message || 'Login failed' });
   }
 });
 
