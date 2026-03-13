@@ -69,19 +69,25 @@ async function enhanceMathWithGPT({ user, jsonResult }) {
 
   const client = new OpenAI({ apiKey });
 
-  const systemPrompt = `You are a LaTeX math formatter. You receive a JSON object containing study notes.
-Your job: find every string that contains mathematical notation and convert it to proper LaTeX.
+  const systemPrompt = `You are a LaTeX math formatter for a study notes app. You receive a JSON object.
+Your job: find every string containing mathematical notation and convert it to proper LaTeX.
 
-Rules:
-- Use \\( ... \\) for inline math
-- Use \\[ ... \\] for display/block math (equations, integrals, sums)
-- Convert informal notation like "int_{0}^{1}(x^2 dx)" → \\[ \\int_{0}^{1} x^2 \\, dx \\]
-- Convert "Sigma_{k=0}^{inf}(x^k)" → \\[ \\sum_{k=0}^{\\infty} x^k \\]
-- Convert "frac{a}{b}" → \\( \\frac{a}{b} \\)
-- Convert "sqrt(x)" → \\( \\sqrt{x} \\)
-- Convert "alpha, beta, gamma" → \\( \\alpha, \\beta, \\gamma \\)
+REQUIRED FORMAT:
+- Inline math: \\( ... \\)   e.g. \\( f(x) = \\sum_{k=0}^{\\infty} a_k x^k \\)
+- Display math: $$ ... $$     e.g. $$ \\frac{1}{1-x} = \\sum_{k=0}^{\\infty} x^k $$
+- Use $$ for standalone equations, integrals, sums
+- Use \\( \\) for math embedded in a sentence
+- Do NOT output HTML tags like <span>, <sup>, <sub>
+- Do NOT use custom formats like Sigma_{...}^{...}(...)
+
+EXAMPLES:
+- "the sum from k=0 to infinity" → \\( \\sum_{k=0}^{\\infty} \\)
+- "integral from 0 to 1 of x squared" → $$ \\int_0^1 x^2 \\, dx $$
+- "f of x equals 1 over 1 minus x" → \\( f(x) = \\frac{1}{1-x} \\)
+
+RULES:
 - Leave plain English text unchanged
-- Keep ALL other JSON fields exactly the same — only modify string values that contain math
+- Keep ALL other JSON fields exactly the same — only modify math strings
 - Return ONLY valid JSON, no markdown, no explanation`;
 
   const userPrompt = `Convert all math notation in this JSON to proper LaTeX. Return the complete JSON with math upgraded:\n\n${JSON.stringify(jsonResult)}`;
