@@ -3,7 +3,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { requireAuth }        = require('../middleware/auth');
 const { generationLimiter }  = require('../middleware/rateLimit');
-const { generate, MODELS }   = require('../services/aiService');
+const { generate, enhanceMathWithGPT, MODELS } = require('../services/aiService');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -137,6 +137,11 @@ router.post('/', requireAuth, generationLimiter, async (req, res) => {
       result = JSON.parse(clean);
     } catch {
       return res.status(500).json({ error: 'AI returned invalid JSON. Please retry.' });
+    }
+
+    // ── Step 2: GPT-4o-mini upgrades math to LaTeX (if Anthropic was used) ──
+    if (provider === 'anthropic' && process.env.OPENAI_API_KEY) {
+      result = await enhanceMathWithGPT({ user: req.user, jsonResult: result });
     }
 
     // ── Log to DB ─────────────────────────────────────────────────────────
