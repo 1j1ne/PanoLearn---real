@@ -1,4 +1,3 @@
-// src/routes/auth.js
 const express = require('express');
 const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
@@ -11,12 +10,15 @@ const router  = express.Router();
 const prisma  = new PrismaClient();
 
 function makeToken(userId) {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+  const secret = process.env.JWT_SECRET;
+  console.log('makeToken — JWT_SECRET defined:', !!secret);
+  if (!secret) throw new Error('Server config error: JWT_SECRET not set');
+  return jwt.sign({ userId }, secret, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d'
   });
 }
 
-// ── POST /auth/register ────────────────────────────────────────────────────
+// ── POST /auth/register
 router.post('/register', authLimiter, async (req, res) => {
   const { email, password, name } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
@@ -27,18 +29,16 @@ router.post('/register', authLimiter, async (req, res) => {
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await prisma.user.create({
-      data: { email, passwordHash, name }
-    });
+    const user = await prisma.user.create({ data: { email, passwordHash, name } });
 
     res.status(201).json({ token: makeToken(user.id), user: publicUser(user) });
   } catch (e) {
-    console.error('REGISTER ERROR:', e.message, e.code);
+    console.error('REGISTER ERROR:', e.message);
     res.status(500).json({ error: e.message || 'Registration failed' });
   }
 });
 
-// ── POST /auth/login ──────────────────────────────────────────────────────
+// ── POST /auth/login
 router.post('/login', authLimiter, async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
@@ -52,23 +52,22 @@ router.post('/login', authLimiter, async (req, res) => {
 
     res.json({ token: makeToken(user.id), user: publicUser(user) });
   } catch (e) {
-    console.error("AUTH ERROR:", e.message, e.code);
+    console.error('LOGIN ERROR:', e.message);
     res.status(500).json({ error: e.message || 'Login failed' });
   }
 });
 
-// ── GET /auth/me ──────────────────────────────────────────────────────────
+// ── GET /auth/me
 router.get('/me', requireAuth, (req, res) => {
   res.json({ user: publicUser(req.user) });
 });
 
-// ── PATCH /auth/keys — save encrypted BYOK API keys ──────────────────────
+// ── PATCH /auth/keys
 router.patch('/keys', requireAuth, async (req, res) => {
   const { anthropicKey, openaiKey } = req.body;
   const data = {};
 
   if (anthropicKey !== undefined) {
-    // Validate key format before storing
     if (anthropicKey && !anthropicKey.startsWith('sk-ant-')) {
       return res.status(400).json({ error: 'Invalid Anthropic API key format' });
     }
@@ -90,7 +89,6 @@ router.patch('/keys', requireAuth, async (req, res) => {
   }
 });
 
-// ── Sanitize user object for API responses ─────────────────────────────────
 function publicUser(u) {
   return {
     id:           u.id,
