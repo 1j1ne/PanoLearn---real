@@ -1,0 +1,82 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Users ──────────────────────────────────────────────────────────────────
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  name          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // API keys (encrypted at rest)
+  anthropicKey  String?  // user's own BYOK key
+  openaiKey     String?  // user's own BYOK key
+
+  // Subscription
+  plan          Plan     @default(FREE)
+  stripeCustomerId    String?  @unique
+  stripeSubId         String?  @unique
+  subCurrentPeriodEnd DateTime?
+
+  // Relations
+  generations   Generation[]
+  usageLogs     UsageLog[]
+
+  @@index([email])
+}
+
+// ── Plans ──────────────────────────────────────────────────────────────────
+enum Plan {
+  FREE      // BYOK only — user supplies their own key
+  PRO       // $6/mo — 300 generations/month using our keys
+  CAMPUS    // $3/student/mo — unlimited, LTI
+}
+
+// ── Each study note generation ─────────────────────────────────────────────
+model Generation {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  provider    Provider // ANTHROPIC | OPENAI
+  model       String   // e.g. "claude-sonnet-4-20250514"
+  lectureTitle String?
+  videoUrl    String?
+  modes       String[] // ["summary","concepts","flashcards",...]
+
+  // Token usage for billing
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  costUsd      Float    @default(0)
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+enum Provider {
+  ANTHROPIC
+  OPENAI
+}
+
+// ── Per-request usage log (for rate limiting & analytics) ─────────────────
+model UsageLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  endpoint  String
+  ip        String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([ip, createdAt])
+}
