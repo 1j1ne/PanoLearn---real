@@ -69,18 +69,9 @@ Rules:
 3. Be specific: use the exact examples the professor gave.
 4. Return ONLY valid JSON — no markdown, no preamble.
 5. For exam_questions: ONLY Computation, Proof, Application, Derivation — never trivial recall. difficulty must be medium or hard only.
-6. Math notation format:
-   - Integrals: int_{a}^{b}(expr)  iint_{R}(expr)  oint_{C}(expr)
-   - Sigma: Sigma_{k=0}^{inf}(expr)
-   - Product: Prod_{k=1}^{n}(expr)
-   - Fractions: frac{a}{b}  or  1/2
-   - Powers: x^{2k+1}  e^{r^2}
-   - Roots: sqrt(expr)  root{n}(expr)
-   - Derivatives: d/dx(f)  partial/partial{x}(f)  f'(x)
-   - Greek: alpha beta gamma delta epsilon theta lambda mu pi omega etc.
-   - Vectors: vec{v}  ||v||
-   - Sets/Logic: in notin subset cup cap emptyset forall exists
-   - Complexity: O(n^2) Theta(n) Omega(n)`;
+6. Detect the lecture_type from: "math", "coding", "science", "humanities". Use "math" for anything with formulas/proofs; "coding" for programming/CS algorithms; "science" for bio/chem/physics without heavy math; "humanities" for history/literature/social science.
+7. For coding lectures: include code examples in triple backticks with language tag e.g. ```python\ncode here\n```
+8. Math notation: use proper LaTeX — \\( inline \\), $ display $ — e.g. \\( \\sum_{k=0}^{\\infty} a_k x^k \\)`;
 
   const userPrompt = `Transcript of a single lecture session.
 Title: "${title || 'Unknown'}"
@@ -93,6 +84,7 @@ ${transcript}
 Return this JSON — every item must be traceable to the transcript:
 {
   "lecture_title": "specific descriptive title",
+  "lecture_type": "math|coding|science|humanities",
   ${requested}
 }`;
 
