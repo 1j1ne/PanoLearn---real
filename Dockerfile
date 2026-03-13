@@ -14,5 +14,5 @@ RUN npm install --omit=dev
 
 RUN npx prisma generate
 
-# Run DB migration then start server
-CMD npx prisma db push --accept-data-loss && node src/index.js
+# Show DB migration output clearly, then start
+CMD sh -c 'echo "=== Running DB migration ===" && npx prisma db push --accept-data-loss && echo "=== DB ready ===" && node src/index.js'
