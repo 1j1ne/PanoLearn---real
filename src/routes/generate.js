@@ -70,7 +70,7 @@ Rules:
 4. Return ONLY valid JSON — no markdown, no preamble.
 5. For exam_questions: ONLY Computation, Proof, Application, Derivation — never trivial recall. difficulty must be medium or hard only.
 6. Detect the lecture_type from: "math", "coding", "science", "humanities". Use "math" for anything with formulas/proofs; "coding" for programming/CS algorithms; "science" for bio/chem/physics without heavy math; "humanities" for history/literature/social science.
-7. For coding lectures: include code examples in triple backticks with language tag e.g. ```python\ncode here\n```
+7. For coding lectures: include code examples in triple backticks with language tag e.g. \`\`\`python\\ncode here\\n\`\`\`
 8. Math notation: use proper LaTeX — \\( inline \\), $ display $ — e.g. \\( \\sum_{k=0}^{\\infty} a_k x^k \\)`;
 
   const userPrompt = `Transcript of a single lecture session.
